@@ -10,6 +10,15 @@ NB.* isNum: 1 iff y is numeric, 0 if not
 NB.* dsp: delete extra spaces: multiple, leading, trailing.
 NB.* checkPsEquiv: check if two uses of getPsTbl return same set of processes.
 
+NB.* multiTimePSs: time multiple instances of process identified by name.
+multiTimePSs=: 3 : 0
+   'psnm wtm'=. y   NB. Process name, wait time between looks.
+   timings=. 0 8$a: [ pstable=. 4$<'nanana'
+   while. 0~:#>2{pstable do. pstable=. watchTillDone psnm;wtm;'';_1
+       timings=. timings,>2{pstable
+   end.
+)
+
 NB.* watchTillStartNew: wait for new instance of process identified by "str"
 NB. to start: return its process info.
 watchTillStartNew=: 3 : 0
@@ -30,7 +39,7 @@ NB.* watchTillDone: watch processes ID'd by string, waiting wtm except 1st;
 NB. return most recent process info before each process finished.
 watchTillDone=: 3 : 0
    'str wtm lastPsTbl ctr'=. y
-   if. 0=#lastPsTbl do. lastPsTbl=. }.getPsTbl str end.
+   while. 0=#lastPsTbl do. lastPsTbl=. }.getPsTbl str end.
    pstbl=. }.getPsTbl str [ wait wtm**ctr=. >:ctr
    if. 0<#pstbl do. lastPsTbl=. (lastPsTbl#~-.(1{"1 lastPsTbl) e. 1{"1 pstbl),pstbl
    else. ctr=. <:ctr end.     NB. Revert counter so result stays same...
@@ -52,6 +61,8 @@ getPsTbl=: 3 : 0
    if. isNum y do. y=. ": y end.        NB. Number is process ID.
    if. noPsFound rpt=. getRawPsTbl y do. ''
    else. (([: joinSplitHdrTitles 0 { ]) 0} _2 }."1 ]) rpt end.
+NB.EG getPsTbl ''  NB. Get data on all processes
+NB.EG getPsTbl 'jconsole'  NB. Get data on processes with "jconsole" in their names.
 )
 
 NB.* isNum: 1 iff y is numeric, 0 if not
